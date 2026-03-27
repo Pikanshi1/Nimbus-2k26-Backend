@@ -1,6 +1,7 @@
 import { createUser, findUserByEmail, findUserById, updateUser, updateUserBalance } from "../services/user/userService.js";
 import bcrypt from "bcrypt";
 import generateToken from "../services/generateTokenService.js";
+import { validate as emailValidator } from "deep-email-validator";
 
 // Basic RFC-5322-inspired email regex for quick format validation
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -15,6 +16,19 @@ const registerUser = async (req, res) => {
 
         if (!EMAIL_REGEX.test(email)) {
             return res.status(400).json({ error: "Please provide a valid email address" });
+        }
+
+        const validation = await emailValidator({
+            email: email,
+            validateRegex: true,
+            validateMx: true,
+            validateTypo: true,
+            validateDisposable: true,
+            validateSMTP: false // typically times out or is blocked by cloud hosts
+        });
+        
+        if (!validation.valid) {
+            return res.status(400).json({ error: "Please provide a valid and active email address." });
         }
 
         const existingUser = await findUserByEmail(email);

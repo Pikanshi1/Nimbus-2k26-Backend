@@ -25,6 +25,7 @@
     "@prisma/client": "^7.4.0",
     "bcrypt": "^6.0.0",
     "cors": "^2.8.6",
+    "deep-email-validator": "^0.1.21",
     "dotenv": "^17.2.3",
     "express": "^5.2.1",
     "google-auth-library": "^10.5.0",
