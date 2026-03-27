@@ -4,6 +4,10 @@ import {
   findUserByResetToken,
   resetUserPassword,
 } from "../services/user/passwordResetService.js";
+import { sendPasswordResetEmail } from "../utils/emailService.js";
+
+// Basic RFC-5322-inspired email regex for quick format validation
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 /**
  * POST /api/users/forgot-password
@@ -20,6 +24,10 @@ const forgotPassword = async (req, res) => {
       return res.status(400).json({ error: "Email is required" });
     }
 
+    if (!EMAIL_REGEX.test(email)) {
+      return res.status(400).json({ error: "Please provide a valid email address" });
+    }
+
     const user = await findUserByEmail(email);
 
     // Always respond with 200 to prevent email enumeration attacks
@@ -32,11 +40,11 @@ const forgotPassword = async (req, res) => {
 
     const token = await createPasswordResetToken(user.user_id);
 
-    // TODO: Replace this with email delivery (e.g., via SendGrid / Nodemailer)
+    await sendPasswordResetEmail(email, token);
+
     res.status(200).json({
       success: true,
-      message: "Password reset token generated. Deliver this token to the user securely.",
-      resetToken: token, // REMOVE THIS IN PRODUCTION — send via email instead
+      message: "If that email is registered, a password reset link has been sent.",
     });
   } catch (error) {
     res.status(500).json({ error: error.message });

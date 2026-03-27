@@ -2,9 +2,20 @@ import { createUser, findUserByEmail, findUserById, updateUser, updateUserBalanc
 import bcrypt from "bcrypt";
 import generateToken from "../services/generateTokenService.js";
 
+// Basic RFC-5322-inspired email regex for quick format validation
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 const registerUser = async (req, res) => {
     try {
         const { name, email, password } = req.body;
+
+        if (!name || !email || !password) {
+            return res.status(400).json({ error: "name, email and password are required" });
+        }
+
+        if (!EMAIL_REGEX.test(email)) {
+            return res.status(400).json({ error: "Please provide a valid email address" });
+        }
 
         const existingUser = await findUserByEmail(email);
         if (existingUser) {
@@ -26,6 +37,14 @@ const registerUser = async (req, res) => {
 const loginUser = async (req, res) => {
     try {
         const { email, password } = req.body;
+
+        if (!email || !password) {
+            return res.status(400).json({ error: "email and password are required" });
+        }
+
+        if (!EMAIL_REGEX.test(email)) {
+            return res.status(400).json({ error: "Please provide a valid email address" });
+        }
 
         const user = await findUserByEmail(email);
 
