@@ -44,15 +44,15 @@ const googleAuth = async (req, res) => {
       user = await createGoogleUser(name, email, googleId);
     }
 
-    const token = generateToken(user.user_id || user.id);
+    const token = generateToken(user.user_id);
 
     res.json({
       success: true,
       message: "Google authentication successful",
       token,
       user: {
-        id: user.user_id || user.id,
-        name: user.full_name || user.name,
+        id: user.user_id,
+        name: user.full_name,
         email: user.email,
       },
     });

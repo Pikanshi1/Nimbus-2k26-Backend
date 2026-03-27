@@ -33,12 +33,16 @@ const loginUser = async (req, res) => {
             return res.status(404).json({ error: "User not found" });
         }
 
+        if (!user.password) {
+            return res.status(401).json({ error: "This account uses Google Sign-In. Please log in with Google." });
+        }
+
         const isPasswordValid = await bcrypt.compare(password, user.password);
 
         if (!isPasswordValid) {
             return res.status(401).json({ error: "Invalid Password" });
         }
-        const token = generateToken(user.id);
+        const token = generateToken(user.user_id);
 
         res.json({ 
             success: true,

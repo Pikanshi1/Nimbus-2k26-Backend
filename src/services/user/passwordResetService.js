@@ -1,6 +1,6 @@
 import crypto from "crypto";
 import bcrypt from "bcrypt";
-import sql from "../../config/db.js";
+import prisma from "../../config/prisma.js";
 
 /**
  * Generates a secure random reset token, stores its hash and expiry in the DB,
@@ -11,14 +11,12 @@ const createPasswordResetToken = async (userId) => {
   const tokenHash = crypto.createHash("sha256").update(token).digest("hex");
   const expiresAt = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
 
-  await sql`
-    UPDATE users
-    SET reset_token = ${tokenHash},
-        reset_token_expires = ${expiresAt}
-    WHERE user_id = ${userId}
-  `;
+  await prisma.user.update({
+    where: { user_id: userId },
+    data: { reset_token: tokenHash, reset_token_expires: expiresAt },
+  });
 
-  return token; // Return plain token (to send via email/SMS)
+  return token;
 };
 
 /**
@@ -26,13 +24,12 @@ const createPasswordResetToken = async (userId) => {
  */
 const findUserByResetToken = async (token) => {
   const tokenHash = crypto.createHash("sha256").update(token).digest("hex");
-  const result = await sql`
-    SELECT *
-    FROM users
-    WHERE reset_token = ${tokenHash}
-      AND reset_token_expires > NOW()
-  `;
-  return result[0];
+  return prisma.user.findFirst({
+    where: {
+      reset_token: tokenHash,
+      reset_token_expires: { gt: new Date() },
+    },
+  });
 };
 
 /**
@@ -40,13 +37,10 @@ const findUserByResetToken = async (token) => {
  */
 const resetUserPassword = async (userId, newPassword) => {
   const hashedPassword = await bcrypt.hash(newPassword, 10);
-  await sql`
-    UPDATE users
-    SET password = ${hashedPassword},
-        reset_token = NULL,
-        reset_token_expires = NULL
-    WHERE user_id = ${userId}
-  `;
+  await prisma.user.update({
+    where: { user_id: userId },
+    data: { password: hashedPassword, reset_token: null, reset_token_expires: null },
+  });
 };
 
 export { createPasswordResetToken, findUserByResetToken, resetUserPassword };

@@ -1,81 +1,56 @@
-import sql from "../../config/db.js";
+import prisma from "../../config/prisma.js";
+import bcrypt from "bcrypt";
 
-const createUser = async (name, email, password) => {
-  const result = await sql`
-    INSERT INTO users (name, email, password)
-    VALUES (${name}, ${email}, ${password})
-    RETURNING id, name, email
-  `;
-  return result[0];
+const createUser = async (name, email, hashedPassword) => {
+  return prisma.user.create({
+    data: { full_name: name, email, password: hashedPassword },
+    select: { user_id: true, full_name: true, email: true },
+  });
 };
 
 const findUserByEmail = async (email) => {
-  const result = await sql`
-    SELECT id, name, email, password
-    FROM users
-    WHERE email = ${email}
-  `;
-  return result[0]; // undefined if not found
+  return prisma.user.findUnique({ where: { email } });
 };
-
-
-
-const createGoogleUser = async (name, email, googleId) => {
-  const res = await sql`
-    INSERT INTO users (name, email, google_id)
-    VALUES (${name}, ${email}, ${googleId})
-    RETURNING *
-  `;
-  return res[0];
-};
-
-
-
 
 const findUserByGoogleId = async (googleId) => {
-  const result = await sql`
-    SELECT *
-    FROM users
-    WHERE google_id = ${googleId}
-  `;
-  return result[0];
+  return prisma.user.findUnique({ where: { google_id: googleId } });
+};
+
+const createGoogleUser = async (name, email, googleId) => {
+  return prisma.user.create({
+    data: { full_name: name, email, google_id: googleId },
+  });
 };
 
 const findUserById = async (userId) => {
-  const result = await sql`
-    SELECT user_id, full_name AS name, email, virtual_balance, created_at
-    FROM users
-    WHERE user_id = ${userId}
-  `;
-  return result[0];
+  return prisma.user.findUnique({
+    where: { user_id: userId },
+    select: { user_id: true, full_name: true, email: true, virtual_balance: true, created_at: true },
+  });
 };
 
 const updateUser = async (userId, { name }) => {
-  const result = await sql`
-    UPDATE users
-    SET full_name = ${name}
-    WHERE user_id = ${userId}
-    RETURNING user_id, full_name AS name, email, virtual_balance
-  `;
-  return result[0];
+  return prisma.user.update({
+    where: { user_id: userId },
+    data: { full_name: name },
+    select: { user_id: true, full_name: true, email: true, virtual_balance: true },
+  });
 };
 
 const updateUserBalance = async (userId, money) => {
-  const result = await sql`
-    UPDATE users
-    SET virtual_balance = ${money}
-    WHERE user_id = ${userId}
-    RETURNING user_id, full_name AS name, email, virtual_balance
-  `;
-  return result[0];
+  return prisma.user.update({
+    where: { user_id: userId },
+    data: { virtual_balance: money },
+    select: { user_id: true, full_name: true, email: true, virtual_balance: true },
+  });
 };
 
-export{
+export {
   createUser,
   findUserByEmail,
-  createGoogleUser,
   findUserByGoogleId,
+  createGoogleUser,
   findUserById,
   updateUser,
-  updateUserBalance
+  updateUserBalance,
 };

@@ -30,7 +30,7 @@ const forgotPassword = async (req, res) => {
       });
     }
 
-    const token = await createPasswordResetToken(user.user_id || user.id);
+    const token = await createPasswordResetToken(user.user_id);
 
     // TODO: Replace this with email delivery (e.g., via SendGrid / Nodemailer)
     res.status(200).json({
@@ -65,7 +65,7 @@ const resetPassword = async (req, res) => {
       return res.status(400).json({ error: "Invalid or expired reset token" });
     }
 
-    await resetUserPassword(user.user_id || user.id, newPassword);
+    await resetUserPassword(user.user_id, newPassword);
 
     res.status(200).json({ success: true, message: "Password has been reset successfully" });
   } catch (error) {
