@@ -49,4 +49,22 @@ const sendPasswordResetEmail = async (toEmail, resetToken) => {
   await transporter.sendMail(mailOptions);
 };
 
-export { sendPasswordResetEmail };
+
+const sendOTPEmail = async (toEmail, otp) => {
+  const transporter = createTransporter();
+
+  await transporter.sendMail({
+    from: `"Nimbus 2k26" <${process.env.EMAIL_USER}>`,
+    to: toEmail,
+    subject: "Your OTP Code",
+    html: `
+      <h2>Your OTP is: ${otp}</h2>
+      <p>Valid for 5 minutes</p>
+    `
+  });
+};
+
+
+
+
+export { sendPasswordResetEmail , sendOTPEmail};

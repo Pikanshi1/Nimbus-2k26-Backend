@@ -189,3 +189,16 @@ FROM users u
 LEFT JOIN user_portfolio p ON u.user_id = p.user_id
 LEFT JOIN stocks s ON p.stock_id = s.stock_id
 GROUP BY u.user_id, u.full_name, u.virtual_balance;
+
+
+
+-------------------------------------------------
+-- 8. Otp 
+-------------------------------------------------
+CREATE TABLE otp_codes (
+  id SERIAL PRIMARY KEY,
+  identifier TEXT NOT NULL, -- email or phone
+  otp TEXT NOT NULL,
+  created_at TIMESTAMP DEFAULT NOW(),
+  expires_at TIMESTAMP
+);

@@ -2,6 +2,9 @@ import { createUser, findUserByEmail, findUserById, updateUser, updateUserBalanc
 import bcrypt from "bcrypt";
 import generateToken from "../services/generateTokenService.js";
 import { validate as emailValidator } from "deep-email-validator";
+import { createOTP, findOTP, deleteOTP, getLastOTP } from "../services/user/otpService.js";
+import { sendOTPEmail } from "../utils/emailService.js";
+
 
 // Basic RFC-5322-inspired email regex for quick format validation
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -21,9 +24,9 @@ const registerUser = async (req, res) => {
         const validation = await emailValidator({
             email: email,
             validateRegex: true,
-            validateMx: true,
-            validateTypo: true,
-            validateDisposable: true,
+            validateMx: false,
+            validateTypo: false,
+            validateDisposable: false,
             validateSMTP: false // typically times out or is blocked by cloud hosts
         });
         
@@ -75,21 +78,70 @@ const loginUser = async (req, res) => {
         if (!isPasswordValid) {
             return res.status(401).json({ error: "Invalid Password" });
         }
+
+        // Password is valid; now send OTP by email
+        const lastOTP = await getLastOTP(email);
+        if (lastOTP) {
+            const diff = Date.now() - new Date(lastOTP.created_at).getTime();
+            if (diff < 20000) {
+                return res.status(429).json({ error: "Wait 20 seconds before requesting new OTP" });
+            }
+        }
+
+        const otp = Math.floor(100000 + Math.random() * 900000).toString();
+        await createOTP(email, otp);
+        await sendOTPEmail(email, otp);
+
+        return res.json({
+            success: true,
+            message: "Login OTP sent via email. Verify with /api/users/login-verify-otp",
+            email
+        });
+
+    } catch (error) {
+        console.error("loginUser error:", error);
+        res.status(500).json({ error: error.message });
+    }
+};
+
+const loginVerifyOTP = async (req, res) => {
+    try {
+        const { email, otp } = req.body;
+
+        if (!email || !otp) {
+            return res.status(400).json({ error: "email and otp are required" });
+        }
+
+        const otpRecord = await findOTP(email, otp);
+        if (!otpRecord) {
+            return res.status(400).json({ error: "Invalid or expired OTP" });
+        }
+
+        await deleteOTP(otpRecord.id);
+
+        const user = await findUserByEmail(email);
+        if (!user) {
+            return res.status(404).json({ error: "User not found" });
+        }
+
         const token = generateToken(user.user_id);
 
-        res.json({ 
+        return res.json({
             success: true,
-            message: "Login successful",
-            token
-         });
+            message: "Login verified successfully",
+            token,
+            user: {
+                id: user.user_id,
+                email: user.email,
+                name: user.full_name
+            }
+        });
 
-        
     } catch (error) {
+        console.error("loginVerifyOTP error:", error);
         res.status(500).json({ error: error.message });
-        
     }
-}
-
+};
 
 const getUserProfile = async (req, res) => {
     try {
@@ -139,6 +191,7 @@ const updateBalance = async (req, res) => {
 export{
     registerUser,
     loginUser,
+    loginVerifyOTP,
     getUserProfile,
     updateUserProfile,
     updateBalance

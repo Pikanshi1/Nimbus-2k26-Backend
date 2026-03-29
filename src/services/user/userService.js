@@ -2,14 +2,19 @@ import prisma from "../../config/prisma.js";
 import bcrypt from "bcrypt";
 
 const createUser = async (name, email, hashedPassword) => {
+  const data = { full_name: name, email, password: hashedPassword };
   return prisma.user.create({
-    data: { full_name: name, email, password: hashedPassword },
+    data,
     select: { user_id: true, full_name: true, email: true },
   });
 };
 
 const findUserByEmail = async (email) => {
   return prisma.user.findUnique({ where: { email } });
+};
+
+const findUserByPhone = async (phone) => {
+  return prisma.user.findUnique({ where: { phone } });
 };
 
 const findUserByGoogleId = async (googleId) => {
@@ -48,6 +53,7 @@ const updateUserBalance = async (userId, money) => {
 export {
   createUser,
   findUserByEmail,
+  findUserByPhone,
   findUserByGoogleId,
   createGoogleUser,
   findUserById,
