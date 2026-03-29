@@ -42,7 +42,7 @@ app.use((req, res, next) => {
 });
 
 app.get('/', (req, res) => {
-  res.send('Hello, Nimbus 2k26 Backend!');
+  res.json({message: 'Hello, Nimbus 2k26 Backend!'});
 });
 
 app.use('/api/users', UserRoutes);
