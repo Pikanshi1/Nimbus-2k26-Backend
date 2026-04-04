@@ -115,6 +115,12 @@ const updateUserBalance = async (userId, money) => {
   });
 };
 
+const deleteUser = async (userId) => {
+  return prisma.user.delete({
+    where: { user_id: userId },
+  });
+};
+
 export {
   upsertGoogleUser,
   findUserByEmail,
@@ -123,4 +129,5 @@ export {
   findUserById,
   updateUser,
   updateUserBalance,
+  deleteUser,
 };
