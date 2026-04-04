@@ -2,7 +2,9 @@ import {
   findUserById,
   updateUser,
   updateUserBalance,
+  deleteUser,
 } from "../services/user/userService.js";
+import admin from "../config/firebase.js";
 
 // ─── PROTECTED PROFILE ────────────────────────────────────────────────────────
 // All routes below require the JWT issued after Google sign-in.
@@ -53,4 +55,27 @@ const updateBalance = async (req, res) => {
   }
 };
 
-export { getUserProfile, updateUserProfile, updateBalance };
+const deleteAccount = async (req, res) => {
+  try {
+    const existing = await getRequestUser(req);
+    if (!existing) return res.status(404).json({ error: "User not found" });
+
+    // Delete from our DB first
+    await deleteUser(existing.user_id);
+
+    // Revoke Firebase account so the Google token is also invalidated
+    if (existing.google_id) {
+      try {
+        await admin.auth().deleteUser(existing.google_id);
+      } catch (_) {
+        // Non-fatal: Firebase user may already be gone
+      }
+    }
+
+    res.json({ success: true, message: "Account deleted successfully" });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+export { getUserProfile, updateUserProfile, updateBalance, deleteAccount };

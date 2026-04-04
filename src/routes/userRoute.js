@@ -4,6 +4,7 @@ import {
   getUserProfile,
   updateUserProfile,
   updateBalance,
+  deleteAccount,
 } from "../controllers/usercontroller.js";
 import { getEventsByDate } from "../controllers/eventControllers.js";
 import validateDate from "../middlewares/valDateMiddleware.js";
@@ -18,6 +19,7 @@ router.post("/auth/google", googleAuth);
 // ─── PROTECTED PROFILE ────────────────────────────────────────────────────────
 router.get("/profile", protect, getUserProfile);
 router.put("/profile", protect, updateUserProfile);
+router.delete("/profile", protect, deleteAccount);
 router.put("/balance", protect, updateBalance);
 
 // ─── EVENTS (public) ─────────────────────────────────────────────────────────
