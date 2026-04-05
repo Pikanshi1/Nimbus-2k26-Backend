@@ -137,6 +137,22 @@ export const handleVote = async (req, res) => {
       voteType: vote_type,
     });
 
+    // ── Cop gets instant private investigation result ─────────────────────────
+    if (vote_type === "COP_INVESTIGATE" && target_id) {
+      const targetPlayer = await prisma.gamePlayer.findUnique({
+        where: { room_code_user_id: { room_code, user_id: target_id } },
+        select: { role: true },
+      });
+      const isMafia = ["MAFIA", "MAFIA_HELPER"].includes(targetPlayer?.role);
+      // Send result privately — only the Cop sees this
+      await pusher.trigger(`private-${voterId}`, "investigation-result", {
+        roomCode: room_code,
+        round: room.round,
+        targetUserId: target_id,
+        result: isMafia ? "MAFIA" : "INNOCENT",
+      });
+    }
+
     // Broadcast that a vote was cast (not who — just that someone did)
     await pusher.trigger(`game-${room_code}`, "vote-updated", {
       voterId,
