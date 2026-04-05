@@ -2,70 +2,49 @@ import prisma from "../../config/prisma.js";
 
 // ─── GOOGLE AUTH ──────────────────────────────────────────────────────────────
 
-/**
- * Upsert a user identified by their Google sub (google_id).
- * Called every time a Google Sign-In succeeds.
- */
 const upsertGoogleUser = async (googleId, name, email) => {
-  // First, try to find an existing user by google_id
   let user = await prisma.user.findUnique({
     where: { google_id: googleId },
-    select: { user_id: true, google_id: true, full_name: true, email: true, virtual_balance: true },
+    select: { user_id: true, google_id: true, full_name: true, email: true },
   });
 
   if (user) {
-    // Update name/email if they changed
     return prisma.user.update({
       where: { google_id: googleId },
       data: { full_name: name, email },
-      select: { user_id: true, google_id: true, full_name: true, email: true, virtual_balance: true },
+      select: { user_id: true, google_id: true, full_name: true, email: true },
     });
   }
 
-  // No user found by google_id — check if this email already exists (e.g. old Clerk user)
   const existingByEmail = await prisma.user.findUnique({
     where: { email },
     select: { user_id: true },
   });
 
   if (existingByEmail) {
-    // Link the google_id to this existing account
     return prisma.user.update({
       where: { email },
       data: { google_id: googleId, full_name: name },
-      select: { user_id: true, google_id: true, full_name: true, email: true, virtual_balance: true },
+      select: { user_id: true, google_id: true, full_name: true, email: true },
     });
   }
 
-  // Brand new user — create fresh
   return prisma.user.create({
     data: { google_id: googleId, full_name: name, email },
-    select: { user_id: true, google_id: true, full_name: true, email: true, virtual_balance: true },
+    select: { user_id: true, google_id: true, full_name: true, email: true },
   });
 };
 
 // ─── EMAIL / OTP AUTH ─────────────────────────────────────────────────────────
 
-/**
- * Find a user by email — used by OTP login lookup and duplicate-check.
- */
 const findUserByEmail = async (email) => {
   return prisma.user.findUnique({ where: { email } });
 };
 
-/**
- * Create a new user via email-only registration (no password, no google_id).
- * google_id is nullable so this is fine.
- */
 const createEmailUser = async (name, email) => {
   return prisma.user.create({
     data: { full_name: name, email },
-    select: {
-      user_id: true,
-      full_name: true,
-      email: true,
-      virtual_balance: true,
-    },
+    select: { user_id: true, full_name: true, email: true },
   });
 };
 
@@ -83,7 +62,6 @@ const findUserById = async (userId) => {
       google_id: true,
       full_name: true,
       email: true,
-      virtual_balance: true,
       created_at: true,
     },
   });
@@ -93,25 +71,7 @@ const updateUser = async (userId, { name }) => {
   return prisma.user.update({
     where: { user_id: userId },
     data: { full_name: name },
-    select: {
-      user_id: true,
-      full_name: true,
-      email: true,
-      virtual_balance: true,
-    },
-  });
-};
-
-const updateUserBalance = async (userId, money) => {
-  return prisma.user.update({
-    where: { user_id: userId },
-    data: { virtual_balance: money },
-    select: {
-      user_id: true,
-      full_name: true,
-      email: true,
-      virtual_balance: true,
-    },
+    select: { user_id: true, full_name: true, email: true },
   });
 };
 
@@ -128,6 +88,5 @@ export {
   findUserByGoogleId,
   findUserById,
   updateUser,
-  updateUserBalance,
   deleteUser,
 };
