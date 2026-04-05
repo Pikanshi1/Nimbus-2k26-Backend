@@ -4,75 +4,7 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-}
-
-enum ClubType {
-  DEPARTMENTAL
-  CORE
-}
-
-model User {
-  user_id    String   @id @default(uuid()) @db.Uuid
-  google_id  String?  @unique
-  full_name  String
-  email      String   @unique
-  created_at DateTime @default(now())
-}
-
-model CoreTeamMember {
-  id         Int      @id @default(autoincrement())
-  name       String
-  role       String
-  image_url  String?
-  linkedin   String?
-  created_at DateTime @default(now())
-}
-
-model Club {
-  club_id    Int      @id @default(autoincrement())
-  club_name  String   @unique
-  club_type  ClubType @default(DEPARTMENTAL)
-  department String?
-  created_at DateTime @default(now())
-
-  events   Event[]
-  projects Project[]
-}
-
-model Project {
-  project_id   Int      @id @default(autoincrement())
-  project_name String
-  description  String?
-  image_url    String?
-  created_at   DateTime @default(now())
-
-  club_id Int
-  club    Club @relation(fields: [club_id], references: [club_id], onDelete: Cascade)
-
-  @@index([club_id])
-}
-
-model Event {
-  event_id      Int      @id @default(autoincrement())
-  event_name    String
-  venue         String
-  image_url     String?
-  extra_details Json?
-  event_time    DateTime
-  created_at    DateTime @default(now())
-
-  organizing_club_id Int
-  club               Club @relation(fields: [organizing_club_id], references: [club_id], onDelete: Cascade)
-
-  @@index([event_time])
-}
-
-generator client {
-  provider = "prisma-client-js"
-}
-
-datasource db {
-  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 //////////////////////
@@ -131,7 +63,7 @@ enum VoteType {
 }
 
 //////////////////////
-// USER (required)
+// USER
 //////////////////////
 
 model User {
@@ -146,7 +78,7 @@ model User {
 }
 
 //////////////////////
-// CLUB SYSTEM (UNCHANGED)
+// CLUB SYSTEM
 //////////////////////
 
 model CoreTeamMember {
@@ -190,9 +122,9 @@ model Event {
   extra_details      Json?
   event_time         DateTime
   created_at         DateTime @default(now())
-  
+
   organizing_club_id Int
-  club               Club     @relation(fields: [organizing_club_id], references: [club_id], onDelete: Cascade)
+  club               Club @relation(fields: [organizing_club_id], references: [club_id], onDelete: Cascade)
 
   @@index([event_time])
 }
@@ -270,8 +202,8 @@ model GameVote {
 
   created_at DateTime @default(now())
 
-  room   GameRoom   @relation(fields: [room_code], references: [room_code], onDelete: Cascade)
-  voter  GamePlayer @relation("VotesCast", fields: [voter_id], references: [id], onDelete: Cascade)
+  room   GameRoom    @relation(fields: [room_code], references: [room_code], onDelete: Cascade)
+  voter  GamePlayer  @relation("VotesCast", fields: [voter_id], references: [id], onDelete: Cascade)
   target GamePlayer? @relation("VotesReceived", fields: [target_id], references: [id], onDelete: Cascade)
 
   @@unique([room_code, round, voter_id, vote_type])
