@@ -148,6 +148,7 @@ model GameRoom {
 
   eliminated_this_round String?
   winner                GameWinner?
+  nurse_met_doctor      Boolean    @default(false)
 
   created_at DateTime @default(now())
 
