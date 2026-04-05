@@ -9,6 +9,7 @@ import EventRoutes from "./routes/eventRoute.js";
 import GameRoutes from "./routes/gameRoutes.js";
 import errorHandler from "./middlewares/errorMiddleware.js";
 import { resolveExpiredRooms } from "./services/game/resolveService.js";
+import pusher from "./config/pusher.js";
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -168,4 +169,10 @@ app.listen(PORT, () => {
   // This is the clock that drives the entire game loop.
   setInterval(resolveExpiredRooms, 1000);
   console.log("[heartbeat] Game loop started (1s interval)");
+
+  // ─── PUSHER TEST TRIGGER ────────────────────────────────────────────────────
+  pusher.trigger("my-channel", "my-event", {
+    message: "hello world"
+  }).then(() => console.log("[pusher] Test event sent to my-channel!"))
+    .catch(e => console.error("[pusher] Error sending test event:", e));
 });
