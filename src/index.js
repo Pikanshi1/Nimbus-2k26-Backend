@@ -6,7 +6,9 @@ import cors from "cors";
 import UserRoutes from "./routes/userRoute.js";
 import CoreTeamRoutes from "./routes/coreTeamRoute.js";
 import EventRoutes from "./routes/eventRoute.js";
+import GameRoutes from "./routes/gameRoutes.js";
 import errorHandler from "./middlewares/errorMiddleware.js";
+import { resolveExpiredRooms } from "./services/game/resolveService.js";
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -154,9 +156,16 @@ app.get("/delete-account", (_req, res) => {
 app.use("/api/users", UserRoutes);
 app.use("/api/coreteam", CoreTeamRoutes);
 app.use("/api/events", EventRoutes);
+app.use("/api/game", GameRoutes);
 
 app.use(errorHandler);
 
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
+
+  // ─── GAME HEARTBEAT ─────────────────────────────────────────────────────────
+  // Checks every second for rooms whose phase timer has expired and resolves them.
+  // This is the clock that drives the entire game loop.
+  setInterval(resolveExpiredRooms, 1000);
+  console.log("[heartbeat] Game loop started (1s interval)");
 });
