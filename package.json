@@ -18,7 +18,8 @@
     "dev": "nodemon src/index.js",
     "start": "node src/index.js",
     "test": "node test/api-test.js",
-    "test:local": "node test/api-test.js --local"
+    "test:local": "node test/api-test.js --local",
+    "postinstall": "prisma generate && prisma migrate deploy"
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.0.2",
