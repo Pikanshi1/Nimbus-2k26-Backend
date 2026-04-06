@@ -36,10 +36,14 @@ enum GameWinner {
 enum GameRole {
   MAFIA
   MAFIA_HELPER
+  HITMAN
   CITIZEN
   DOCTOR
   COP
   NURSE
+  BOUNTY_HUNTER
+  PROPHET
+  REPORTER
 }
 
 enum PlayerStatus {
@@ -59,6 +63,10 @@ enum VoteType {
   DOC_SAVE
   COP_INVESTIGATE
   NURSE_ACTION
+  HITMAN_TARGET       // Hitman night kill (TBD)
+  BOUNTY_HUNTER_SHOT  // Bounty Hunter ability (TBD)
+  PROPHET_VISION      // Prophet night reveal (TBD)
+  REPORTER_EXPOSE     // Reporter ability (TBD)
 }
 
 //////////////////////

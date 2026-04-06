@@ -29,7 +29,7 @@ async function checkWinCondition(roomCode) {
   });
 
   const aliveMafia = alive.filter((p) =>
-    ["MAFIA", "MAFIA_HELPER"].includes(p.role)
+    ["MAFIA", "MAFIA_HELPER", "HITMAN"].includes(p.role)
   ).length;
   const aliveOthers = alive.length - aliveMafia;
 
