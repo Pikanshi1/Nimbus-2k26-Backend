@@ -7,7 +7,9 @@ const __dirname = dirname(__filename);
 
 dotenv.config({ path: join(__dirname, '../../.env') });
 
-import { PrismaClient } from "@prisma/client";
+import pkg from '@prisma/client';
+const { PrismaClient } = pkg;
+
 import { PrismaPg } from "@prisma/adapter-pg";
 import pg from "pg";
 
