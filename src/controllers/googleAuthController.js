@@ -47,10 +47,8 @@ const googleAuth = async (req, res) => {
         error: "Please verify your Google email before signing in",
       });
 
-    if (!isAllowedCollegeEmail(normalizedEmail))
-      return res.status(403).json({
-        error: "Only @nith.ac.in email addresses are allowed",
-      });
+    // Domain restriction removed to allow app reviewers and all external users to login
+
 
     // Upsert user in DB (create on first sign-in, update on subsequent ones)
     const user = await upsertGoogleUser(uid, name, normalizedEmail);
