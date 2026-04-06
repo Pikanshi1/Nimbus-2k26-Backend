@@ -47,6 +47,17 @@ export async function startGame(roomCode, hostUserId) {
         status: "NIGHT",
         round: 1,
         phase_ends_at: phaseEndsAt,
+        state_meta: {
+          hitman_resolved: false,
+          night_resolved: false,
+          hitman_met_mafia: false,
+          bounty_vip_player_id: null,
+          bounty_vip_dead: false,
+          bounty_kill_unlocked: false,
+          reporter_used: false,
+          reporter_result: null,
+          early_deaths: [],
+        },
       },
     }),
     // Write each player's role
